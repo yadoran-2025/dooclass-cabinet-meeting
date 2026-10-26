@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eaf0f1">
+  <title>국무회의, 문을 열다 · 정부형태 실험실</title>
+  <link rel="stylesheet" href="./cabinet.css?v=20261023-opening-question1">
+  <script type="module" src="./cabinet.js?v=20261023-opening-question1"></script>
+</head>
+<body>
+  <header class="site-header">
+    <span class="brand"><span class="brand-mark" aria-hidden="true">↗</span><span>국무회의 탐구<small>CIVIC LAB</small></span></span>
+    <span class="edition">대한민국 · 국무회의 체험</span>
+    <button class="text-button" id="restart">처음부터 ↺</button>
+  </header>
+  <main>
+    <nav class="steps" aria-label="활동 단계" id="steps"></nav>
+    <div class="activity-heading"><div><p class="eyebrow" id="eyebrow">01 / THE CABINET</p><h1 id="heading">국무회의, 문을 열다</h1></div><button class="question-button" id="question"><span aria-hidden="true">?</span> 질문 보기</button></div>
+    <div class="workspace">
+      <section class="scene-wrap" aria-label="국무회의실">
+        <div class="scene-top"><span><i aria-hidden="true"></i> 청와대 세종실 참고</span><span><span class="camera-hint">드래그로 회전 · 휠로 확대</span><span id="room-status">입장 대기</span></span></div>
+        <div id="scene" role="group" aria-label="청와대 세종실의 공식 사진을 참고한 3차원 국무회의실"></div>
+        <div id="scene-labels" aria-label="회의실 인물 선택"></div>
+        <div class="camera-tools" aria-label="회의실 시점"><button data-view="room" aria-pressed="true">회의실 전체</button><button data-view="entrance" aria-pressed="false">입구 가까이</button><button data-view="table" aria-pressed="false">테이블 가까이</button><button data-view="observers" aria-pressed="false">배석석 보기</button><button data-view="speaker" aria-pressed="false" hidden>발언자 보기</button></div>
+        <div class="scene-caption"><span id="scene-caption">대기 중인 인물을 골라 주세요.</span><span><a href="https://www.president.go.kr/photos/president/TBWsP9k3" target="_blank" rel="noopener noreferrer">공간 근거 · 공식 사진 ↗</a></span></div>
+      </section>
+      <aside class="side-panel" id="panel" aria-label="현재 활동"></aside>
+    </div>
+    <section class="activity-dock" id="dock" aria-label="활동 선택"></section>
+    <footer class="activity-footer"><span id="footnote">입장 판단 · 별도 초청이 없는 일반적인 회의</span><span>국무회의 탐구 <b id="page-number">01 / 04</b></span></footer>
+  </main>
+  <dialog id="question-modal" aria-labelledby="modal-title"><div id="modal-content"></div></dialog>
+  <div class="sr-only" aria-live="polite" id="announcer"></div>
+  <noscript>이 활동은 자바스크립트가 필요합니다.</noscript>
+</body>
+</html>

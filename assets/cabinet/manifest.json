@@ -1,0 +1,66 @@
+{
+  "generator": "Blender 4.2.3",
+  "style": "pixel-voxel",
+  "pixelReference": "characters.mjs",
+  "fps": 30,
+  "characters": [
+    {
+      "id": "premier",
+      "role": "국무총리",
+      "file": "premier.glb"
+    },
+    {
+      "id": "speaker",
+      "role": "국회의장",
+      "file": "speaker.glb"
+    },
+    {
+      "id": "secretary",
+      "role": "대통령비서실장",
+      "file": "secretary.glb"
+    },
+    {
+      "id": "justice",
+      "role": "법무부장관",
+      "file": "justice.glb"
+    },
+    {
+      "id": "chief",
+      "role": "대법원장",
+      "file": "chief.glb"
+    },
+    {
+      "id": "education",
+      "role": "교육부장관",
+      "file": "education.glb"
+    },
+    {
+      "id": "president",
+      "role": "대통령",
+      "file": "president.glb"
+    },
+    {
+      "id": "legislation",
+      "role": "법제처장",
+      "file": "legislation.glb"
+    }
+  ],
+  "clips": {
+    "Idle": [
+      1,
+      32
+    ],
+    "Walk": [
+      32,
+      63
+    ],
+    "SitDown": [
+      63,
+      94
+    ],
+    "Seated": [
+      94,
+      96
+    ]
+  }
+}

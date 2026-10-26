@@ -1,0 +1,26 @@
+{
+  "reference": "청와대 본관 세종실 · 2026.09.29 공식 사진 참고",
+  "photo": "https://www.president.go.kr/photos/president/TBWsP9k3",
+  "venueSource": "https://www.ktv.go.kr/news/major/view?content_id=761696",
+  "roomHalf": [9.3, 8.2],
+  "tableOuter": [6.8, 3.3],
+  "tableInner": [5.5, 2.0],
+  "mainRowX": [-5.4, -3.6, -1.8, 0, 1.8, 3.6, 5.4],
+  "mainRowZ": 3.95,
+  "observerRows": [
+    {"z": -6.8, "deskZ": -6.15, "x": [-7, -5, -3, -1, 1, 3, 5, 7]},
+    {"z": 6.8, "deskZ": 6.15, "x": [-5, -3, -1, 1, 3, 5]}
+  ],
+  "president": [0, -3.95],
+  "legislation": [-5, -6.8],
+  "peopleSeats": {"premier": [-1.8, -3.95], "secretary": [5, -6.8], "justice": [3.6, -3.95], "education": [-3.6, 3.95]},
+  "entrance": [8.05, 4.65],
+  "door": [9.26, 4.65],
+  "lobbyX": 11.2,
+  "lobbyStartZ": -4,
+  "lobbyPitch": 1.6,
+  "lobbyLaneX": 12.6,
+  "exitX": 13.7,
+  "mainAisleZ": 5.25,
+  "rearAisleZ": -7.55
+}
