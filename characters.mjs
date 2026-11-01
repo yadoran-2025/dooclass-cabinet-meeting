@@ -1,4 +1,7 @@
 const styles = {
+  constitutional: ['bun', '#343b48', '#929fbf', '#deb08b', 'glasses'],
+  party: ['short', '#704631', '#d5a6a0', '#f0c4a0', 'scarf'],
+  auditor: ['bowl', '#56504b', '#91b3a6', '#f2c89f', 'glasses'],
   a1: ['short', '#3b3538', '#7da7d0', '#f0c4a0', 'scarf'],
   a2: ['bob', '#704631', '#e7a6a1', '#deb08b', 'bow'],
   a3: ['bowl', '#343e47', '#e3b647', '#f2c89f', 'glasses'],
@@ -48,8 +51,8 @@ export function pixelArt(p) {
     <rect x="4" y="2" width="8" height="2" fill="${hair}"/><rect x="3" y="4" width="10" height="6" fill="${hair}"/>
     <rect x="4" y="6" width="8" height="7" fill="${skin}"/><rect x="5" y="13" width="6" height="1" fill="${skin}"/>
     <rect x="3" y="8" width="1" height="3" fill="${skin}"/><rect x="12" y="8" width="1" height="3" fill="${skin}"/>
-    ${hairShape}<rect x="6" y="8" width="1" height="2" fill="#3f3937"/><rect x="10" y="8" width="1" height="2" fill="#3f3937"/>
-    <rect x="4" y="10" width="2" height="1" fill="#dc9290"/><rect x="10" y="10" width="2" height="1" fill="#dc9290"/><rect x="7" y="12" width="2" height="1" fill="#b4776b"/>
+    ${hairShape}${p.expression === 'angry' ? '<path d="M5 7h1v1h2v1H7V8H5zm7 0h-1v1H9v1h1V8h2z" fill="#3f3937"/>' : ''}<rect x="6" y="8" width="1" height="2" fill="#3f3937"/><rect x="10" y="8" width="1" height="2" fill="#3f3937"/>
+    <rect x="4" y="10" width="2" height="1" fill="#dc9290"/><rect x="10" y="10" width="2" height="1" fill="#dc9290"/>${p.expression === 'angry' ? '<path d="M7 11h2v1h1v1H9v-1H7v1H6v-1h1z" fill="#a9574e"/>' : '<rect x="7" y="12" width="2" height="1" fill="#b4776b"/>'}
     <rect x="4" y="14" width="8" height="5" fill="${shirt}"/><rect x="2" y="15" width="2" height="3" fill="${shirt}"/><rect x="12" y="15" width="2" height="3" fill="${shirt}"/>
     <rect x="2" y="18" width="2" height="1" fill="${skin}"/><rect x="12" y="18" width="2" height="1" fill="${skin}"/>
     <rect x="4" y="19" width="3" height="2" fill="#4a5155"/><rect x="9" y="19" width="3" height="2" fill="#4a5155"/>

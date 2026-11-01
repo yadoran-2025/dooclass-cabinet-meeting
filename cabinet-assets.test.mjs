@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/addons/loaders/GLTFLoader.js';
+import { people } from './cabinet-model.mjs';
 import { ANIMATION_RANGES } from './cabinet-motion.mjs';
 
 const base=new URL('./assets/cabinet/',import.meta.url);
 const manifest=JSON.parse(await readFile(new URL('manifest.json',base),'utf8'));
 test('Blender 내보내기와 웹의 동작 구간이 일치한다',()=>{
   assert.deepEqual(manifest.clips,ANIMATION_RANGES);
-  assert.equal(manifest.characters.length,8);
+  assert.deepEqual(manifest.characters.map(p=>p.id).sort(),[...people.map(p=>p.id),'president','legislation'].sort());
   assert.equal(manifest.style,'pixel-voxel');
 });
 for(const person of manifest.characters){
@@ -17,7 +18,7 @@ for(const person of manifest.characters){
     const bytes=await readFile(new URL(person.file,base));
     const data=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
     assert.equal(data.animations.length,1);
-    let skinned=0;data.scene.traverse(node=>{if(node.isSkinnedMesh){skinned++;assert.equal(node.skeleton.bones.length,12);}});
+    let skinned=0;data.scene.traverse(node=>{if(node.isSkinnedMesh){skinned++;assert.equal(node.skeleton.bones.length,12);for(const key of ['position','normal'])assert.ok(node.geometry.attributes[key].array.every(Number.isFinite),key+' must be finite');}});
     assert.ok(skinned>0);
     const mixer=new THREE.AnimationMixer(data.scene);
     const thigh=data.scene.getObjectByName('thigh_L'),knee=data.scene.getObjectByName('shin_L');

@@ -1,7 +1,7 @@
-import layout from './cabinet-layout.json' with { type: 'json' };
+import layout from './cabinet-layout.json?v=20261101-nine-candidates2' with { type: 'json' };
 export const ANIMATION_RANGES = { Idle:[1,32], Walk:[32,63], SitDown:[63,94], Seated:[94,96] };
 export const ENTRANCE = layout.entrance;
-export const WALK_SPEED = 1.65;
+export const WALK_SPEED = 3.4;
 export const WALK_CYCLE_DISTANCE = .65;
 export const TURN_DURATION = .32;
 export const SEAT_DURATION = 1.15;
@@ -23,7 +23,7 @@ export function entranceRoute(person, index) {
 
 export function exitRoute(index) {
   const home = lobbyPosition(index);
-  return [home,[layout.exitX,home[1]],[layout.exitX,index === 1 ? -5.6 : 6.1]];
+  return [home,[layout.exitX,home[1]],[layout.exitX,layout.roomHalf[1]-.5]];
 }
 
 export function pathLength(points) {
@@ -93,4 +93,16 @@ export function sampleEntrance(plan,elapsed){
   const u=clamp01((after-TURN_DURATION)/SEAT_DURATION),slide=ease((u-.58)/.30);
   return {x:end[0]+(plan.seat[0]-end[0])*slide,z:end[1]+(plan.seat[1]-end[1])*slide,
     angle:turn(-Math.PI/2,plan.seatAngle,(u-.48)/.4),phase:u<1?'sitting':'seated',sitProgress:u,done:u>=1};
+}
+
+// Three quick hops, then settle back into the chair.
+export const PRESIDENT_REACTION_DURATION = 1.9;
+export function samplePresidentReaction(elapsed) {
+  if (!Number.isFinite(elapsed)) throw new TypeError('유한한 재생 시간이 필요합니다.');
+  const t = Math.max(0, elapsed);
+  if (t >= PRESIDENT_REACTION_DURATION) return { lift: 0, lean: 0, scaleY: 1, done: true };
+  if (t >= 1.65) return { lift: 0, lean: 0, scaleY: 1, done: false };
+  const u = Math.max(0, Math.min(1, (t - .15) / 1.5));
+  const hop = Math.sin((u * 3 % 1) * Math.PI);
+  return { lift: .72 * hop, lean: Math.sin(u * Math.PI * 6) * .07, scaleY: 1 - .1 * (1 - hop), done: false };
 }

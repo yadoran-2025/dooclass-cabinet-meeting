@@ -1,7 +1,8 @@
-import layout from './cabinet-layout.json' with { type: 'json' };
+import layout from './cabinet-layout.json?v=20261101-nine-candidates2' with { type: 'json' };
 export const sources = {
   constitution: { title: '대한민국헌법 제88·89조', url: 'https://www.law.go.kr/법령/대한민국헌법' },
   rules: { title: '국무회의 규정 제8조', url: 'https://www.law.go.kr/법령/국무회의규정' },
+  auditBudget: { title: '국가재정법 제41조', url: 'https://www.law.go.kr/법령/국가재정법/제41조' },
   meeting: { title: '2022.12.20 제56회 국무회의 결과 브리핑', url: 'https://www.korea.kr/news/policyNewsView.do?newsId=156543517' },
   passage: { title: '2022.12.8 법제처·법무부 발표', url: 'https://moleg.go.kr/board.es?act=view&bid=0048&list_no=135843&mid=a10501000000' },
   promulgation: { title: '2022.12.27 만 나이 통일법 공포', url: 'https://www.korea.kr/news/policyNewsView.do?newsId=148909874' },
@@ -15,7 +16,19 @@ export const people = [
   { id: 'justice', avatar: 'b1', name: '법무부장관', allow: true, role: '국무위원', seat: layout.peopleSeats.justice, color: '#c4ad7a', result: '국무위원으로 회의에 참여합니다.', hint: '국무위원으로 임명된 장관입니다.', source: 'constitution' },
   { id: 'chief', avatar: 'b2', name: '대법원장', allow: false, role: '사법부', seat: null, color: '#94bec4', result: '사법부인 법원에 속합니다.', hint: '재판을 담당하는 기관은 어디일까요?', source: 'constitution' },
   { id: 'education', avatar: 'a4', name: '교육부장관', allow: true, role: '국무위원', seat: layout.peopleSeats.education, color: '#b6a3d4', result: '국무위원으로 회의에 참여합니다.', hint: '국무회의는 여러 부처의 정책을 함께 심의합니다.', source: 'constitution' },
+  { id: 'constitutional', avatar: 'constitutional', name: '헌법재판소 재판관', allow: false, role: '헌법재판소', seat: null, color: '#929fbf', result: '헌법재판을 담당하며, 국무회의 구성원이 아닙니다.', hint: '헌법재판소는 어떤 일을 하는 기관일까요?', source: 'constitution' },
+  { id: 'party', avatar: 'party', name: '여당 당대표', allow: false, role: '정당', seat: null, color: '#d5a6a0', result: '정당의 대표라는 직책만으로 국무회의에 참석하지는 않습니다.', hint: '여당과 행정부는 같은 조직일까요?', source: 'constitution' },
+  { id: 'auditor', avatar: 'auditor', name: '감사원장', allow: false, role: '감사원', seat: null, color: '#91b3a6', result: '대통령 소속 기관의 장이지만, 국무회의 구성원이나 일반 배석자는 아닙니다.', exception: '다만 정부가 감사원의 예산 요구액을 줄이려면, 국무회의에서 감사원장의 의견을 들어야 합니다.', hint: '대통령 소속 기관의 장은 모두 국무회의 구성원일까요?', source: 'auditBudget' },
 ];
+
+export function shuffledPeople() {
+  const order = [...people];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
 
 export const agendas = [
   { id: 'budget', number: '01', title: '내년도 정부 예산안', category: '예산', include: true, result: '예산안은 국무회의 심의 대상입니다.', hint: '국가 재정에 관한 중요한 사항입니다.' },

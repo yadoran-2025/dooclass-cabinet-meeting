@@ -1,6 +1,6 @@
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { people, agendas, records, policySteps, sources, judge } from './cabinet-model.mjs';
+import { people, agendas, records, policySteps, sources, judge, shuffledPeople } from './cabinet-model.mjs';
 
 test('입장은 구성원·배석자와 구분하며 비서실장은 국무위원이 아니다', () => {
   for (const p of people) {
@@ -41,4 +41,23 @@ test('알 수 없는 문항과 올바르지 않은 값은 처리하지 않는다
   assert.throws(()=>judge('bad','premier',true),RangeError);
   assert.throws(()=>judge('person','premier','true'),TypeError);
   assert.throws(()=>judge('policy','passage','unknown'),TypeError);
+});
+
+test('새 세 후보는 일반 참석 대상이 아니며 감사원 예산 감액 예외를 구분한다',()=>{
+  assert.equal(people.length,9);assert.equal(new Set(people.map(p=>p.id)).size,9);
+  for(const id of ['constitutional','party','auditor'])assert.equal(judge('person',id,false).correct,true);
+  const auditor=people.find(p=>p.id==='auditor');assert.match(auditor.exception,/예산 요구액을 줄이려면.*국무회의.*의견/);
+  assert.equal(auditor.source,'auditBudget');assert.match(sources.auditBudget.url,/제41조/);
+});
+
+test('후보 카드는 원본·좌석을 바꾸지 않고 아홉 명을 중복 없이 섞는다', () => {
+  const original = [...people];
+  mock.method(Math, 'random', () => 0);
+  try {
+    const order = shuffledPeople();
+    assert.deepEqual(order, [...original.slice(1), original[0]]);
+    assert.deepEqual(people, original);
+    assert.equal(new Set(order.map(p => p.id)).size, people.length);
+    assert.notEqual(order, people);
+  } finally { mock.restoreAll(); }
 });

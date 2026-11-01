@@ -1,4 +1,4 @@
-"""Blender 4.2: model eight civic characters, skin them, and export animated GLBs."""
+"""Blender 4.2: model civic characters, skin them, and export animated GLBs."""
 import bpy
 import math
 import json
@@ -22,6 +22,9 @@ PEOPLE = [
     ('justice', '법무부장관', '#c4ad7a', '#8c5c3d', '#f2c89f', 'side-glasses'),
     ('chief', '대법원장', '#94bec4', '#363c49', '#deb08b', 'beret'),
     ('education', '교육부장관', '#b6a3d4', '#573b32', '#f0c4a0', 'bun'),
+    ('constitutional', '헌법재판소 재판관', '#929fbf', '#343b48', '#deb08b', 'glasses'),
+    ('party', '여당 당대표', '#d5a6a0', '#704631', '#f0c4a0', 'scarf'),
+    ('auditor', '감사원장', '#91b3a6', '#56504b', '#f2c89f', 'glasses'),
     ('president', '대통령', '#6688a8', '#4d3e36', '#f0c4a0', 'scarf'),
     ('legislation', '법제처장', '#e5d3ae', '#775543', '#f2c89f', 'beret'),
 ]
@@ -175,7 +178,7 @@ for index,(pid,label,coat,hair,skin,style) in enumerate(PEOPLE):
     bpy.ops.export_scene.gltf(filepath=str(OUT/(pid+'.glb')),export_format='GLB',use_selection=True,
         export_animations=True,export_frame_range=True,export_animation_mode='ACTIVE_ACTIONS',
         export_force_sampling=True,export_skins=True,export_yup=True)
-    rig.location=(index*1.12-3.92,0,0)
+    rig.location=((index-(len(PEOPLE)-1)/2)*1.12,0,0)
     rig['role']=label;rig['authoring']='Blender 4.2.3; voxel extrusion of characters.mjs pixel art'
     gallery.append((rig,mesh))
 
@@ -194,7 +197,7 @@ for loc,power,size in [((1,-4,7),1100,7),((-5,-2,4),650,5),((2,3,6),900,4)]:
     light.rotation_euler=(Vector((0,0,1))-light.location).to_track_quat('-Z','Y').to_euler()
 bpy.ops.object.camera_add(location=(4,-13,6))
 camera=bpy.context.object;camera.rotation_euler=(Vector((0,0,1))-camera.location).to_track_quat('-Z','Y').to_euler()
-camera.data.type='ORTHO';camera.data.ortho_scale=10.7;bpy.context.scene.camera=camera
+camera.data.type='ORTHO';camera.data.ortho_scale=14.5;bpy.context.scene.camera=camera
 bpy.context.scene.view_settings.view_transform='AgX'
 bpy.ops.wm.save_as_mainfile(filepath=str(BASE/'blender'/'cabinet-characters.blend'))
 (OUT/'manifest.json').write_text(json.dumps({'generator':'Blender 4.2.3','style':'pixel-voxel','pixelReference':'characters.mjs','fps':30,'characters':[{'id':p[0],'role':p[1],'file':p[0]+'.glb'} for p in PEOPLE],

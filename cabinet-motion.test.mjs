@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import layout from './cabinet-layout.json' with { type: 'json' };
 import { people } from './cabinet-model.mjs';
-import { entranceRoute, exitRoute, lobbyPosition, pathLength, samplePath, planEntrance, sampleEntrance, TURN_DURATION, SEAT_DURATION, WALK_CYCLE_DISTANCE } from './cabinet-motion.mjs';
+import { entranceRoute, exitRoute, lobbyPosition, pathLength, samplePath, planEntrance, sampleEntrance, TURN_DURATION, SEAT_DURATION, WALK_CYCLE_DISTANCE, WALK_SPEED, samplePresidentReaction, PRESIDENT_REACTION_DURATION } from './cabinet-motion.mjs';
 
 test('모든 입장 동선은 문을 지나 배정된 좌석에 도착하며 테이블을 통과하지 않는다',()=>{
   people.forEach((person,index)=>{
@@ -17,8 +17,8 @@ test('모든 입장 동선은 문을 지나 배정된 좌석에 도착하며 테
     }
   });
 });
-test('거절한 인물은 입구 밖에 머무른다',()=>{
-  for(const i of [1,4])for(let d=0;d<pathLength(exitRoute(i));d+=.1)assert.ok(samplePath(exitRoute(i),d).x>layout.roomHalf[0]);
+test('거절한 인물의 퇴장 동선은 회의실 안으로 들어오지 않는다',()=>{
+  for(const i of people.flatMap((p,i)=>p.allow?[]:[i]))for(let d=0;d<pathLength(exitRoute(i));d+=.1)assert.ok(samplePath(exitRoute(i),d).x>layout.roomHalf[0]);
 });
 test('프레임 간격과 관계없이 경로 끝에 도착하고 초과 거리는 마지막 위치에 고정한다',()=>{
   const route=entranceRoute(people[0],0), length=pathLength(route);
@@ -41,7 +41,7 @@ test('천천히 출발·정지하고 이동 거리와 걸음 박자가 일치한
     assert.ok(Math.abs(frame.x)>layout.tableOuter[0]+.35||Math.abs(frame.z)>layout.tableOuter[1]+.35,'둥근 모서리 동선도 탁자를 통과하지 않는다');
     previous=frame.distance;
   }
-  assert.ok(sampleEntrance(plan,plan.travelDuration-.01).speed<.05);
+  assert.ok(sampleEntrance(plan,plan.travelDuration-.01).speed<WALK_SPEED*.03);
 });
 
 test('의자 옆에서 멈춰 돌아본 뒤 올라앉으며 모든 좌석에 정확히 도착한다',()=>{
@@ -75,4 +75,60 @@ test('회의석 사이 여유와 별도 배석 책상 뒤·앞 통로를 확보�
     assert.ok(Math.abs(row.z)+.4<layout.roomHalf[1]);
   }
   for(const seat of [layout.peopleSeats.secretary,layout.legislation])assert.ok(layout.observerRows.some(row=>row.z===seat[1]&&row.x.includes(seat[0])));
+});
+
+test('입장 속도를 높여도 가속·감속과 착석 시간을 보존한다',()=>{
+  assert.equal(WALK_SPEED,3.4);
+  const plan=planEntrance(people[0],0);
+  assert.ok(plan.travelDuration<plan.length/1.65*.6);
+  assert.equal(sampleEntrance(plan,0).speed,0);
+  assert.equal(sampleEntrance(plan,plan.duration).phase,'seated');
+});
+test('대통령은 세 번 뛰고 원래 높이와 크기로 돌아온다',()=>{
+  const peaks=[.4,.9,1.4].map(t=>samplePresidentReaction(t));
+  for(const peak of peaks)assert.ok(peak.lift>.7);
+  for(const t of [0,.65,1.15,1.65])assert.ok(Math.abs(samplePresidentReaction(t).lift)<1e-8);
+  assert.deepEqual(samplePresidentReaction(PRESIDENT_REACTION_DURATION),{lift:0,lean:0,scaleY:1,done:true});
+  assert.throws(()=>samplePresidentReaction(NaN),TypeError);
+});
+
+test('아홉 후보는 대기 간격을 유지하고 거절한 인물은 바깥 통로 끝까지 걸어 퇴장한다',()=>{
+  const waiting=people.map((p,i)=>lobbyPosition(i));
+  for(const [x,z] of waiting){assert.ok(x>layout.roomHalf[0]&&x<layout.roomHalf[0]+5);assert.ok(Math.abs(z)<layout.roomHalf[1]-.5);}
+  for(let i=1;i<waiting.length;i++)assert.ok(waiting[i][1]-waiting[i-1][1]>=1.59);
+  people.forEach((person,index)=>{
+    if(person.allow)return;
+    const plan=planEntrance(person,index);
+    const route=exitRoute(index);
+    assert.deepEqual(route[0],lobbyPosition(index));
+    assert.deepEqual(route.at(-1),[layout.exitX,layout.roomHalf[1]-.5]);
+    assert.ok(plan.length>3.5,'옆으로 한 걸음만 움직이고 사라지지 않는다');
+    let previous=0;
+    for(let t=0;t<plan.duration;t+=1/60){
+      const point=sampleEntrance(plan,t);
+      assert.equal(point.phase,'walking');assert.equal(point.done,false);
+      assert.ok(point.distance>=previous);previous=point.distance;
+      assert.ok(point.x>layout.roomHalf[0]&&point.x<layout.roomHalf[0]+5);
+      assert.ok(Math.abs(point.z)<layout.roomHalf[1]);
+      assert.ok(Math.abs(point.gait-point.distance/WALK_CYCLE_DISTANCE%1)<1e-8);
+    }
+    const final=sampleEntrance(plan,plan.duration);
+    assert.equal(final.phase,'denied');assert.equal(final.done,true);
+    assert.deepEqual([final.x,final.z],route.at(-1));
+  });
+});
+
+test('무작위 줄의 어느 위치에서도 입장 좌석과 바깥 퇴장 경로를 유지한다',()=>{
+  for(const person of people)for(let index=0;index<people.length;index++){
+    const plan=planEntrance(person,index);
+    assert.deepEqual(plan.path[0],lobbyPosition(index));
+    const last=sampleEntrance(plan,plan.duration+.001);
+    assert.deepEqual([last.x,last.z],person.allow?person.seat:exitRoute(index).at(-1));
+    assert.equal(last.phase,person.allow?'seated':'denied');
+    for(let t=0;t<plan.duration;t+=.05){
+      const point=sampleEntrance(plan,t);
+      if(!person.allow)assert.ok(point.x>layout.roomHalf[0]);
+      else assert.ok(Math.abs(point.x)>layout.tableOuter[0]+.35||Math.abs(point.z)>layout.tableOuter[1]+.35);
+    }
+  }
 });

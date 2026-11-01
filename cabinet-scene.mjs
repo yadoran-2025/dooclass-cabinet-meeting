@@ -1,10 +1,10 @@
 import * as THREE from './vendor/three.module.min.js';
-import layout from './cabinet-layout.json' with { type: 'json' };
-import { people } from './cabinet-model.mjs';
+import layout from './cabinet-layout.json?v=20261101-nine-candidates2' with { type: 'json' };
+import { people } from './cabinet-model.mjs?v=20261101-nine-candidates2';
 import { GLTFLoader } from './vendor/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from './vendor/addons/controls/OrbitControls.js';
 import { placeSpeech } from './cabinet-speech.mjs';
-import { lobbyPosition, exitRoute, planEntrance, sampleEntrance, ANIMATION_RANGES } from './cabinet-motion.mjs?v=20261023-entrance-seat1';
+import { lobbyPosition, exitRoute, planEntrance, sampleEntrance, samplePresidentReaction, ANIMATION_RANGES } from './cabinet-motion.mjs?v=20261101-walk-exit1';
 
 export function createRoom(host, labels, onPerson) {
   let renderer;
@@ -12,7 +12,7 @@ export function createRoom(host, labels, onPerson) {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   } catch {
     host.innerHTML = '<div class="fallback-room"><div class="fallback-table">국무회의</div><p>3D를 사용할 수 없는 기기입니다. 아래 인물 버튼으로 활동할 수 있어요.</p></div>';
-    return { update() {}, setView() {}, replay() {} };
+    return { update() {}, setView() {}, replay() {}, react() {}, stopReaction() {} };
   }
   host.append(renderer.domElement);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -203,7 +203,7 @@ export function createRoom(host, labels, onPerson) {
   }
   const lobbyCenter=roomX+2.5;
   box(room,lobbyCenter,-.28,0,5,.55,roomZ*2,'#b6a58e');box(room,lobbyCenter,.015,0,4.9,.05,roomZ*2-.2,'#e4ded0');
-  for(let i=0;i<6;i++)box(room,layout.lobbyX,.048,layout.lobbyStartZ+i*layout.lobbyPitch,.85,.008,.02,'#c4baa6',false);
+  for(let i=0;i<people.length;i++)box(room,layout.lobbyX,.048,layout.lobbyStartZ+i*layout.lobbyPitch,.85,.008,.02,'#c4baa6',false);
   const [doorX,doorZ]=layout.door;
   for(const z of [doorZ-.93,doorZ+.93])box(room,doorX,1.43,z,.26,2.86,.17,wood);
   box(room,doorX,2.84,doorZ,.26,.18,2.04,wood);
@@ -215,6 +215,7 @@ export function createRoom(host, labels, onPerson) {
   loadNotice.textContent='3D 인물 준비 중';loadNotice.setAttribute('role','status');host.append(loadNotice);
   const actors = new Map();
   function person(id,color,x,z,style=0){
+    style %= 8;
     const hair=['#3b3538','#704631','#343e47','#8c5c3d','#363c49','#573b32','#4d3e36','#775543'][style];
     const skin=['#f0c4a0','#deb08b','#f2c89f','#f2c89f','#deb08b','#f0c4a0','#f0c4a0','#f2c89f'][style];
     const root=new THREE.Group();root.position.set(x,.08,z);root.userData.id=id;
@@ -266,7 +267,7 @@ export function createRoom(host, labels, onPerson) {
   });
 
   let stage=0, selected='', statuses={}, view='room', frame=0, lastTime=0, active=null, speech=null;
-  let queue=[], contextLost=false;
+  let queue=[], contextLost=false, reactionElapsed=null;
   const controls=new OrbitControls(camera,renderer.domElement);
   controls.enablePan=false;
   controls.minPolarAngle=.15;
@@ -337,7 +338,7 @@ export function createRoom(host, labels, onPerson) {
     if(p.allow&&(done||stage>0)){
       const point=stage===2&&p.id==='premier'?layout.president:p.seat;
       locate(actor,point,seatAngle(...point));pose(actor,'Seated');actor.phase='seated';
-    }else if(done){locate(actor,exitRoute(people.indexOf(p)).at(-1),-Math.PI/2);pose(actor,'Idle');actor.phase='denied';}
+    }else if(done){locate(actor,exitRoute(actor.lineIndex).at(-1),-Math.PI/2);pose(actor,'Idle');actor.phase='denied';}
     else{actor.root.position.copy(actor.home);actor.root.rotation.y=0;pose(actor,'Idle');actor.phase='waiting';}
   }
   function startNext(){
@@ -349,7 +350,7 @@ export function createRoom(host, labels, onPerson) {
   function enqueue(p){
     const actor=actors.get(p.id);
     if(active?.id===p.id||queue.some(job=>job.id===p.id))return;
-    const index=people.indexOf(p);
+    const index=actor.lineIndex;
     queue.push({id:p.id,person:p,plan:planEntrance(p,index),elapsed:0});
     actor.phase='queued';startNext();schedule();
   }
@@ -360,10 +361,17 @@ export function createRoom(host, labels, onPerson) {
     actor.label.dataset.z=actor.root.position.z.toFixed(3);
     actor.label.dataset.pose=actor.pose;
   }
+  function stopReaction(redraw=true){
+    reactionElapsed=null;president.phase='seated';
+    president.root.position.y=.08;president.root.rotation.z=0;president.root.scale.setScalar(1);
+    president.label.classList.remove('angry');president.label.innerHTML='대통령<small>의장</small>';
+    pose(president,'Seated');if(redraw)schedule();
+  }
   function draw(time){
     frame=0;if(contextLost)return;
     const dt=lastTime?Math.min((time-lastTime)/1000,.15):1/60;lastTime=time;
-    if(active){
+    const paused=active&&!active.person.allow&&document.getElementById('question-modal').open;
+    if(active&&!paused){
       const actor=actors.get(active.id);
       if(reduced.matches){snap(actor,active.person,true);active=null;startNext();}
       else{
@@ -375,6 +383,15 @@ export function createRoom(host, labels, onPerson) {
         if(actor.action&&point.phase==='walking')actor.action.time=point.gait*actor.action.getClip().duration;
         if(actor.action&&point.phase==='sitting')actor.action.time=point.sitProgress*actor.action.getClip().duration;
         if(point.done){active=null;startNext();}
+      }
+    }
+    if(reactionElapsed!==null){
+      reactionElapsed+=dt;
+      const reaction=samplePresidentReaction(reactionElapsed);
+      if(reduced.matches||reaction.done)stopReaction(false);
+      else{
+        president.root.position.y=.08+reaction.lift;
+        president.root.rotation.z=reaction.lean;president.root.scale.y=reaction.scaleY;
       }
     }
     const doorTarget=active?.person.allow?-Math.PI/2:0;
@@ -389,6 +406,8 @@ export function createRoom(host, labels, onPerson) {
       marker.label.style.top=`${(-v.y+1)*host.clientHeight/2}px`;
     }
     for(const actor of actors.values()){
+      actor.root.visible=actor.root.visible&&actor.phase!=='denied';
+      actor.label.hidden=!actor.root.visible;
       if(actor.mixer&&actor.root.visible)actor.mixer.update(dt);
       publishState(actor);
       if(actor.root.visible){
@@ -418,7 +437,7 @@ export function createRoom(host, labels, onPerson) {
       element.style.setProperty('--speech-tail',`${position.tail}px`);
     }
     renderer.render(scene,camera);
-    if(active||Math.abs(doorTarget-doorPivot.rotation.y)>.001)frame=requestAnimationFrame(draw);
+    if((active&&!paused)||reactionElapsed!==null||Math.abs(doorTarget-doorPivot.rotation.y)>.001)frame=requestAnimationFrame(draw);
     else lastTime=0;
   }
   function schedule(){if(!frame&&!contextLost)frame=requestAnimationFrame(draw);}
@@ -494,10 +513,13 @@ export function createRoom(host, labels, onPerson) {
       speech=next.speech||null;
       const reset=Object.keys(statuses).some(id=>!Object.hasOwn(next.statuses,id));
       const previous=statuses;stage=next.stage;selected=next.selected||'';statuses={...next.statuses};
-      if(changedStage||reset){active=null;queue=[];}
+      if(changedStage||reset){active=null;queue=[];stopReaction();}
       president.root.visible=stage!==2;president.label.hidden=stage===2;pose(president,'Seated');
       for(const p of people){
         const actor=actors.get(p.id),done=Object.hasOwn(statuses,p.id);
+        actor.lineIndex=next.personOrder.length-1-next.personOrder.findIndex(person=>person.id===p.id);
+        const [homeX,homeZ]=lobbyPosition(actor.lineIndex);
+        actor.home.set(homeX,.08,homeZ);
         actor.root.visible=stage===0||p.allow;actor.label.hidden=!actor.root.visible;
         if(changedStage||reset||stage>0||!done)snap(actor,p,done);
         else if(!Object.hasOwn(previous,p.id)){
@@ -516,6 +538,13 @@ export function createRoom(host, labels, onPerson) {
       schedule();
     },
     setView(next){preset(next);},
+    react(){
+      if(stage!==0||reduced.matches||contextLost)return;
+      reactionElapsed=0;president.phase='reacting';pose(president,'Idle');president.label.classList.add('angry');
+      president.label.innerHTML='대통령<small>다시 확인!</small>';schedule();
+    },
+    stopReaction,
+
     replay(id){
       const p=people.find(person=>person.id===id);
       if(stage!==0||!p?.allow||!Object.hasOwn(statuses,id))return;

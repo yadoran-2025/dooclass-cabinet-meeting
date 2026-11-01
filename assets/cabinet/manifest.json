@@ -35,6 +35,21 @@
       "file": "education.glb"
     },
     {
+      "id": "constitutional",
+      "role": "헌법재판소 재판관",
+      "file": "constitutional.glb"
+    },
+    {
+      "id": "party",
+      "role": "여당 당대표",
+      "file": "party.glb"
+    },
+    {
+      "id": "auditor",
+      "role": "감사원장",
+      "file": "auditor.glb"
+    },
+    {
       "id": "president",
       "role": "대통령",
       "file": "president.glb"

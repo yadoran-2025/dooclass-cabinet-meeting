@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import { writeFile } from 'node:fs/promises';
 import { pixelArt } from '../characters.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
-const appearances={premier:'a1',speaker:'a2',secretary:'a3',justice:'b1',chief:'b2',education:'a4',president:'president',legislation:'expert'};
+const appearances={premier:'a1',speaker:'a2',secretary:'a3',justice:'b1',chief:'b2',education:'a4',constitutional:'constitutional',party:'party',auditor:'auditor',president:'president',legislation:'expert'};
 const characters={};
 for(const [id,avatar] of Object.entries(appearances)){
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="88" viewBox="0 0 16 22">${pixelArt({id:avatar})}</svg>`;
